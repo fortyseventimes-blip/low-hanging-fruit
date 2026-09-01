@@ -1,0 +1,291 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// See openspec/changes/add-mvp-skill-assessment/design.md for the source of
+// truth on entities and field semantics.
+
+model User {
+  id              String      @id @default(uuid()) @db.Uuid
+  name            String
+  geo             String
+  industry        String
+  roleCurrent     String      @map("role_current")
+  experienceYears Int         @map("experience_years")
+  resumeText      String      @map("resume_text") @db.Text
+  careerStage     CareerStage @map("career_stage")
+  consentedScopes String[]    @map("consented_scopes")
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  skillAssessments       UserSkillAssessment[]
+  roadmapRecommendations RoadmapRecommendation[]
+  checkIns               CheckIn[]
+  monetizationEvents     MonetizationEvent[]
+
+  @@map("users")
+}
+
+enum CareerStage {
+  plateaued_senior
+  long_term_search
+  active_it
+}
+
+// Единица, за которой закреплена своя таксономия навыков — продукт остаётся
+// применим к любой профессии, не только к PM.
+model Profession {
+  id             String @id @default(uuid()) @db.Uuid
+  name           String
+  ringCount      Int    @default(3) @map("ring_count")
+  sourceTaxonomy String @map("source_taxonomy")
+
+  domains SkillDomain[]
+
+  @@map("professions")
+}
+
+// Один домен = один "сектор" на плоской карте / одно "созвездие" на звёздной.
+model SkillDomain {
+  id           String @id @default(uuid()) @db.Uuid
+  professionId String @map("profession_id") @db.Uuid
+  name         String
+  color        String
+  orderIndex   Int    @map("order_index")
+
+  profession Profession @relation(fields: [professionId], references: [id])
+  skills     Skill[]
+
+  @@unique([professionId, orderIndex])
+  @@map("skill_domains")
+}
+
+model Skill {
+  id                 String      @id @default(uuid()) @db.Uuid
+  domainId           String      @map("domain_id") @db.Uuid
+  // Порядковый номер кольца зрелости, 1..Profession.ringCount — angle/radius
+  // на карте вычисляются из этого поля чистой функцией, см. design.md.
+  ringIndex          Int         @map("ring_index")
+  name               String
+  keyQuestion        String      @map("key_question")
+  models             String      @db.Text
+  aiSpeedStars       Int         @map("ai_speed_stars")
+  aiQualityStars     Int         @map("ai_quality_stars")
+  // Отдельно от aiQualityStars: снижение качества со временем — не то же
+  // самое, что низкое/нулевое качество сейчас (см. design.md).
+  aiQualityDeclining Boolean     @default(false) @map("ai_quality_declining")
+  aiCategory         AiCategory? @map("ai_category")
+  source             String?
+
+  domain SkillDomain @relation(fields: [domainId], references: [id])
+
+  assessments            UserSkillAssessment[]
+  connectionsFrom        SkillConnection[]       @relation("SkillConnectionFrom")
+  connectionsTo          SkillConnection[]       @relation("SkillConnectionTo")
+  cohortBenchmarks       CohortSkillBenchmark[]
+  roadmapRecommendations RoadmapRecommendation[]
+  requiredByRoles        RoleRequiredSkill[]
+
+  @@map("skills")
+}
+
+enum AiCategory {
+  delegation
+  mediated_via_prep
+  not_applicable
+  replacement
+}
+
+// Ребро графа — какой навык предшествует какому. Без своего id: пара
+// (fromSkillId, toSkillId) уже уникальна и служит первичным ключом.
+model SkillConnection {
+  fromSkillId String @map("from_skill_id") @db.Uuid
+  toSkillId   String @map("to_skill_id") @db.Uuid
+
+  fromSkill Skill @relation("SkillConnectionFrom", fields: [fromSkillId], references: [id])
+  toSkill   Skill @relation("SkillConnectionTo", fields: [toSkillId], references: [id])
+
+  @@id([fromSkillId, toSkillId])
+  @@map("skill_connections")
+}
+
+// Целевая роль на рынке — не привязана к одной профессии/навыку.
+model RoleProfile {
+  id       String @id @default(uuid()) @db.Uuid
+  title    String
+  industry String
+  geo      String
+
+  requiredSkills     RoleRequiredSkill[]
+  structuralBarriers StructuralBarrier[]
+
+  @@map("role_profiles")
+}
+
+// Join-таблица для RoleProfile.required_skills: (skill_id, target_ring)[] —
+// в реляционной модели это отдельная таблица, не встроенный массив.
+model RoleRequiredSkill {
+  roleProfileId String @map("role_profile_id") @db.Uuid
+  skillId       String @map("skill_id") @db.Uuid
+  targetRing    Int    @map("target_ring")
+
+  roleProfile RoleProfile @relation(fields: [roleProfileId], references: [id])
+  skill       Skill       @relation(fields: [skillId], references: [id])
+
+  @@id([roleProfileId, skillId])
+  @@map("role_required_skills")
+}
+
+// Не-скилловый барьер входа в роль — статистический фактор, не фильтр.
+// isHardFilter почти всегда false и всегда идёт в паре с exceptionPct.
+model StructuralBarrier {
+  id            String      @id @default(uuid()) @db.Uuid
+  roleProfileId String      @map("role_profile_id") @db.Uuid
+  barrierType   BarrierType @map("barrier_type")
+  prevalencePct Float       @map("prevalence_pct")
+  exceptionPct  Float       @map("exception_pct")
+  isHardFilter  Boolean     @default(false) @map("is_hard_filter")
+
+  roleProfile RoleProfile @relation(fields: [roleProfileId], references: [id])
+
+  @@map("structural_barriers")
+}
+
+enum BarrierType {
+  education
+  certification
+  social_capital
+}
+
+model UserSkillAssessment {
+  id             String         @id @default(uuid()) @db.Uuid
+  userId         String         @map("user_id") @db.Uuid
+  skillId        String         @map("skill_id") @db.Uuid
+  // 1..5, проверяется на уровне приложения — Prisma не поддерживает
+  // CHECK-констрейнты в schema DSL.
+  selfRating     Int?           @map("self_rating")
+  inferredRating Int?           @map("inferred_rating")
+  evidenceSource EvidenceSource @map("evidence_source")
+  assessedAt     DateTime       @default(now()) @map("assessed_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  skill Skill @relation(fields: [skillId], references: [id])
+
+  @@unique([userId, skillId])
+  @@map("user_skill_assessments")
+}
+
+enum EvidenceSource {
+  self_report
+  resume_nlp
+  exercise
+}
+
+model Cohort {
+  id             String @id @default(uuid()) @db.Uuid
+  industry       String
+  role           String
+  geo            String
+  experienceBand String @map("experience_band")
+  sampleSource   String @map("sample_source")
+  sampleSize     Int    @map("sample_size")
+
+  benchmarks CohortSkillBenchmark[]
+
+  @@map("cohorts")
+}
+
+model CohortSkillBenchmark {
+  cohortId               String    @map("cohort_id") @db.Uuid
+  skillId                String    @map("skill_id") @db.Uuid
+  mean                   Float
+  stddev                 Float
+  percentileDistribution Json      @map("percentile_distribution")
+  dataSource             String    @map("data_source")
+  // Postgres `interval` не мапится на скаляр Prisma Client — храним как
+  // секунды. На MVP не используется (см. design.md), зарезервировано.
+  freshnessWindow        Int?      @map("freshness_window")
+  lastRefreshedAt        DateTime? @map("last_refreshed_at")
+
+  cohort Cohort @relation(fields: [cohortId], references: [id])
+  skill  Skill  @relation(fields: [skillId], references: [id])
+
+  @@id([cohortId, skillId])
+  @@map("cohort_skill_benchmarks")
+}
+
+// Контракт на будущую итерацию — не заполняется вживую в MVP (см.
+// specs/market-agent/spec.md), но схема зафиксирована сейчас.
+model MarketSignal {
+  id              String     @id @default(uuid()) @db.Uuid
+  // Полиморфная ссылка на Skill.id или RoleProfile.id — намеренно без FK.
+  subjectId       String     @map("subject_id") @db.Uuid
+  signalType      SignalType @map("signal_type")
+  value           Json
+  sourceUrl       String     @map("source_url")
+  fetchedAt       DateTime   @map("fetched_at")
+  freshnessWindow Int        @map("freshness_window")
+  staleFlag       Boolean    @default(false) @map("stale_flag")
+
+  @@map("market_signals")
+}
+
+enum SignalType {
+  demand_trend
+  salary
+  job_postings_count
+}
+
+model RoadmapRecommendation {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  skillId       String   @map("skill_id") @db.Uuid
+  priorityRank  Int      @map("priority_rank")
+  rationaleText String   @map("rationale_text") @db.Text
+  generatedAt   DateTime @default(now()) @map("generated_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  skill Skill @relation(fields: [skillId], references: [id])
+
+  @@map("roadmap_recommendations")
+}
+
+// Контракт на будущую итерацию — вне скоупа MVP-реализации.
+model CheckIn {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  scheduledAt       DateTime @map("scheduled_at")
+  cohortSnapshotRef String   @map("cohort_snapshot_ref") @db.Uuid
+  deltaSummary      String   @map("delta_summary") @db.Text
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("check_ins")
+}
+
+// Контракт на будущую итерацию — вне скоупа MVP-реализации.
+model MonetizationEvent {
+  id         String                @id @default(uuid()) @db.Uuid
+  userId     String                @map("user_id") @db.Uuid
+  eventType  MonetizationEventType @map("event_type")
+  target     String
+  occurredAt DateTime              @default(now()) @map("occurred_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("monetization_events")
+}
+
+enum MonetizationEventType {
+  affiliate_click
+  consult_booking
+}
