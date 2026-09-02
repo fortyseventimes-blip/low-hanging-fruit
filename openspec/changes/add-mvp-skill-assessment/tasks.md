@@ -9,8 +9,13 @@
       `Cohort` + `CohortSkillBenchmark` (Cohort реален по industry +
       experience_band; per-skill benchmark — синтетическая заглушка, см.
       design.md → "Ключевые решения дизайна данных")
-- [ ] 1.4 Сид минимум одной `RoleProfile` со `StructuralBarrier` для
-      пилотной проверки (напр. Product Analyst, Германия)
+- [x] 1.4 Сид минимум одной `RoleProfile` со `StructuralBarrier` для
+      пилотной проверки (напр. Product Analyst, Германия) —
+      `backend/src/etl/seed-pilot-role.ts`, `npm run seed:pilot-role`.
+      StructuralBarrier-проценты — редакционная оценка, не измерение:
+      Entgeltatlas (см. references.md) не отдаёт разбивку по
+      квалификационным уровням через статический фетч (JS SPA без
+      публичного API), см. комментарий в файле сида
 
 ## 2. Backend
 - [ ] 2.1 Эндпоинт онбординга: создание `User`
