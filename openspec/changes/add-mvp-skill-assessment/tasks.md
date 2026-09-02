@@ -41,8 +41,21 @@
       запись незачем). Верифицировано вручную: confirm/reject happy
       path, confirm несуществующего → 404, reject уже подтверждённого
       (`self_report`) → 400, reject уже удалённого → 404
-- [ ] 2.4 Расчёт разрыва с когортой (`assessment-scoring` +
-      `cohort-benchmarking` спеки)
+- [x] 2.4 Расчёт разрыва с когортой (`assessment-scoring` +
+      `cohort-benchmarking` спеки) — `GET /users/:userId/cohort-gap`
+      (`backend/src/services/cohort-scoring.ts`,
+      `backend/src/routes/cohort-gap.ts`). Подбор когорты — industry
+      точно + experience_band в допуске ±2 года, иначе ближайшая по
+      industry с `approximate: true`. Разрыв считается только для
+      подтверждённых (`self_rating`) навыков, неподтверждённые
+      `inferred_rating` идут в `pendingConfirmation`, не в расчёт.
+      Вынес `EXPERIENCE_BANDS`/`experienceBandFromYears` в общий
+      `backend/src/lib/experience-bands.ts` (раньше жили только в ETL) —
+      единый источник правды для границ полос между ETL и скорингом.
+      Live-верифицировано на реальных когортах/бенчмарках из 1.3: точный
+      расчёт разрыва, `pendingConfirmation` для неподтверждённого навыка,
+      `cohort: null` для индустрии без когорт, 404 для несуществующего
+      пользователя
 - [ ] 2.5 Генерация `RoadmapRecommendation` (1–3 навыка) через Claude API
 
 ## 3. Frontend

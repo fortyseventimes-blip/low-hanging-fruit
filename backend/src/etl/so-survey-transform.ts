@@ -1,3 +1,7 @@
+import { EXPERIENCE_BANDS, experienceBandFromYears, type ExperienceBand } from "../lib/experience-bands.js";
+
+export { EXPERIENCE_BANDS, experienceBandFromYears, type ExperienceBand };
+
 export const SAMPLE_SOURCE = "Stack Overflow Developer Survey 2025";
 
 // Матчинг когорты по requirements/cohort-benchmarking/spec.md идёт только
@@ -11,17 +15,6 @@ export const SAMPLE_SOURCE = "Stack Overflow Developer Survey 2025";
 // никто не принял их за реальные срезы.
 export const COHORT_ROLE_PLACEHOLDER = "General tech workforce (unfiltered by role)";
 export const COHORT_GEO_PLACEHOLDER = "Global";
-
-export const EXPERIENCE_BANDS = ["0-2", "2-5", "5-10", "10-15", "15+"] as const;
-export type ExperienceBand = (typeof EXPERIENCE_BANDS)[number];
-
-export function experienceBandFromYears(years: number): ExperienceBand {
-  if (years < 2) return "0-2";
-  if (years < 5) return "2-5";
-  if (years < 10) return "5-10";
-  if (years < 15) return "10-15";
-  return "15+";
-}
 
 // WorkExp (профессиональный опыт) точнее для нашего продукта, чем
 // YearsCode (включает хобби-кодинг до первой работы) — используем как
