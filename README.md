@@ -13,6 +13,54 @@ connections between skills), and builds a development roadmap that
 accounts for which skills the market still values and which are already
 being automated by AI.
 
+## Running Locally
+
+Two terminals (backend + frontend), plus a Postgres instance.
+
+**1. Database**
+```
+docker compose up -d
+```
+Starts Postgres 17 on `localhost:5432` (user/password/db: see
+`docker-compose.yml` — matches the example `DATABASE_URL` below).
+
+**2. Backend** (`backend/`)
+```
+cd backend
+cp .env.example .env   # fill in ANTHROPIC_API_KEY (see note below)
+npm install
+npx prisma migrate deploy
+npm run etl:paf              # seeds Profession/SkillDomain/Skill/SkillConnection from data/PAF_Skill_Map_database.xlsx
+npm run seed:pilot-role      # seeds the pilot RoleProfile + StructuralBarrier (Product Analyst, Germany)
+npm run dev                  # http://localhost:3000
+```
+The `so-survey-cohorts` ETL (`npm run etl:so-survey`) needs the ~140MB
+raw CSV first — see "Cold-Start Data" below — and seeds `Cohort` /
+`CohortSkillBenchmark`. Without it there's no cohort to compare against
+(the dashboard still loads, just with `cohort: null` and no gap-based
+recommendations).
+
+**ANTHROPIC_API_KEY**: powers resume→skill inference (2.2) and roadmap
+rationale generation (2.5). Without a valid key, onboarding and the
+dashboard still work end-to-end — the skill map just stays fully
+"unassessed" and no roadmap recommendations appear (verified: this fails
+gracefully, doesn't block onboarding).
+
+**3. Frontend** (`frontend/`)
+```
+cd frontend
+npm install
+npm run dev   # http://localhost:5173
+```
+No `.env` needed for local dev — it defaults to `http://localhost:3000`
+for the API (override via `VITE_API_BASE_URL` if the backend runs
+elsewhere).
+
+Open **http://localhost:5173** — that's the actual app: onboarding →
+skill map dashboard.
+
+**Tests**: `npm test` in either `backend/` or `frontend/` (Vitest).
+
 ## Target Segment (pilot)
 Senior professionals on a career plateau (30–35 years old) and people in
 a prolonged job search, primarily in IT/product — this segment is already
