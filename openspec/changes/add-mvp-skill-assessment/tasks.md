@@ -56,7 +56,21 @@
       расчёт разрыва, `pendingConfirmation` для неподтверждённого навыка,
       `cohort: null` для индустрии без когорт, 404 для несуществующего
       пользователя
-- [ ] 2.5 Генерация `RoadmapRecommendation` (1–3 навыка) через Claude API
+- [x] 2.5 Генерация `RoadmapRecommendation` (1–3 навыка) через Claude API
+      — `POST /users/:userId/roadmap`
+      (`backend/src/services/roadmap-recommendation.ts`,
+      `backend/src/routes/roadmap.ts`). Кандидаты — навыки с `gap < 0`
+      (отставание от когорты), никогда `ai_category = replacement`;
+      ранжирование — устойчивость к ИИ (`not_applicable` >
+      сеньорское кольцо с `ai_quality_stars >= 3` > остальное), внутри
+      уровня — по величине отставания. Rationale — Claude Opus 5
+      (README: "Opus для тяжёлого когортного анализа", в отличие от
+      Sonnet в 2.2). Live-верифицировано: `not_applicable`-навык с
+      меньшим отставанием обошёл `delegation`-навык с большим; навык с
+      САМЫМ большим отставанием из всех (`replacement`) корректно
+      исключён из рекомендаций.
+
+Раздел 2 (Backend) завершён.
 
 ## 3. Frontend
 - [ ] 3.1 Онбординг-форма (≤ 7 минут, см. дизайн-бриф: Onboarding Stepper)
