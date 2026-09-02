@@ -78,8 +78,17 @@ accustomed to gamification (gaming) and to sharing personal data.
 
 ### Cold-Start Data
 - Stack Overflow Developer Survey 2025 (results.csv from
-  StackExchange/Survey on GitHub) — ETL script (Python/pandas or Node)
-  → Cohort / CohortSkillBenchmark tables in Postgres
+  StackExchange/Survey on GitHub) — ETL script (`backend/src/etl/so-survey-cohorts.ts`,
+  run via `npm run etl:so-survey`) → `Cohort` / `CohortSkillBenchmark`
+  tables in Postgres. `Cohort` (industry × experience_band, real sample
+  sizes) is a genuine aggregate of the survey; `CohortSkillBenchmark`
+  (per-skill mean/stddev) is a documented synthetic placeholder, since
+  the survey has no question that rates a specific PAF skill — see
+  `design.md` → "Ключевые решения дизайна данных" for why, and
+  `backend/src/etl/so-survey-transform.ts` for the exact formula.
+  The raw CSV (~140MB, Git LFS on the upstream repo) is gitignored —
+  fetch it with:
+  `curl -o data/so-survey-2025-results.csv https://media.githubusercontent.com/media/StackExchange/Survey/main/packages/archive/2025/results.csv`
 
 ### Auth / Misc
 - Auth: Clerk or Auth0 (email + LinkedIn OAuth)

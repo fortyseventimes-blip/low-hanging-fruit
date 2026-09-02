@@ -194,3 +194,20 @@
 - `MarketSignal`, `CheckIn`, `MonetizationEvent` включены в схему сейчас,
   но не реализуются в MVP — чтобы вторая итерация не требовала миграции
   существующих таблиц, только добавления логики поверх них.
+- **`Cohort` из SO Survey 2025 реальна, `CohortSkillBenchmark` из того же
+  ETL — синтетическая заглушка.** В опросе нет вопроса, оценивающего
+  конкретный PM-навык из PAF Skill Map по шкале 1-5, а фильтрация по
+  `DevType="Product manager"` (205 строк на ~49k) после разбивки по
+  industry/experience_band даёт статистически бессмысленные выборки.
+  Поэтому `Cohort.industry` + `Cohort.experience_band` + `sample_size`
+  строятся из реальной популяции респондентов (без фильтра по роли), а
+  `Cohort.role`/`Cohort.geo` — фиксированные плейсхолдеры
+  (`"General tech workforce (unfiltered by role)"` / `"Global"`), чтобы
+  не выглядеть как реальный срез. `CohortSkillBenchmark.mean/stddev` —
+  детерминированная функция от `Skill.ring_index` и `experience_band`
+  (не случайные числа: воспроизводимы между запусками ETL), с
+  `data_source`, явно помеченным как placeholder. См.
+  `backend/src/etl/so-survey-transform.ts` — точная формула и обоснование
+  каждого решения. Первая реальная замена per-skill benchmark — это
+  накопленные `UserSkillAssessment` собственных пользователей, не
+  повторный проход по этому источнику.

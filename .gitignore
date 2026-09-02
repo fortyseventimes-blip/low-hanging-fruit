@@ -7,3 +7,7 @@ build/
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+# Stack Overflow Developer Survey 2025 raw export (~140MB, Git LFS on
+# upstream) — re-fetch via the etl:so-survey npm script, don't commit.
+data/so-survey-2025-results.csv

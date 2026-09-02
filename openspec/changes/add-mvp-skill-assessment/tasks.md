@@ -5,8 +5,10 @@
       таблицы MarketSignal/CheckIn/MonetizationEvent)
 - [x] 1.2 ETL: загрузка `PAF_Skill_Map_database.xlsx` → таблица `Skill` +
       `SkillConnection` (71 запись, уже подготовлено)
-- [ ] 1.3 ETL: Stack Overflow Developer Survey 2025 results.csv →
-      `Cohort` + `CohortSkillBenchmark`
+- [x] 1.3 ETL: Stack Overflow Developer Survey 2025 results.csv →
+      `Cohort` + `CohortSkillBenchmark` (Cohort реален по industry +
+      experience_band; per-skill benchmark — синтетическая заглушка, см.
+      design.md → "Ключевые решения дизайна данных")
 - [ ] 1.4 Сид минимум одной `RoleProfile` со `StructuralBarrier` для
       пилотной проверки (напр. Product Analyst, Германия)
 
