@@ -7,8 +7,8 @@ skills with cohort benchmarking.
 ## What it is
 A B2C service that scans a person's profile (resume, LinkedIn, free-text
 self-description), shows their current position in the job market
-relative to a cohort (industry + role + geography + experience), 
-visualizes skills as an RPG-style map (sectors + maturity rings +
+relative to a cohort (industry + role + geography + experience),
+visualizes skills as an RPG-style map (domains + maturity rings +
 connections between skills), and builds a development roadmap that
 accounts for which skills the market still values and which are already
 being automated by AI.
@@ -31,11 +31,24 @@ accustomed to gamification (gaming) and to sharing personal data.
 - Cold-start data — the Stack Overflow Developer Survey 2025 (~49,000
   developers, ODbL license, attribution required) instead of waiting to
   accumulate an own user base.
-- Visual and structural logic of the skill map — a hybrid: sectors +
-  maturity rings + connections from the PAF Skill Map (Sergey Tikhomirov,
-  productframework.ru, CC BY-SA 4.0, attribution required) + game-like
-  node treatment from Microsoft Flight Simulator 2024 career mode
-  (filled-in/grey+lock).
+- **Skill map structure vs. visual style are decoupled.** The data logic
+  (domains + maturity rings + connections between skills) is adapted from
+  the PAF Skill Map (Sergey Tikhomirov, productframework.ru, CC BY-SA 4.0,
+  attribution required). The visual aesthetic is Microsoft Flight
+  Simulator 2024 career mode: dark background, circular icon nodes,
+  concentric maturity rings, filled-in+checkmark ("mastered") vs.
+  grey+lock ("locked") states — see
+  `openspec/changes/add-mvp-skill-assessment/design-brief-ui-elements.md`.
+  (A dark "constellation" alternative was considered on 2026-09-02 and
+  rejected in favor of the MSFS direction — see `references.md`.)
+- **Domain and ring placement is profession-agnostic by construction.**
+  Angle and radius on the map are pure functions of
+  `Profession.domain_count` / `Profession.ring_count` — not hardcoded to
+  Product Management's 6 domains / 3 rings. Switching to a different
+  profession (e.g. marketing, sales) means adding rows to `Profession` /
+  `SkillDomain`, not changing rendering code. This holds regardless of
+  which visual skin is drawn on top. See `design.md` for the `Profession`
+  / `SkillDomain` entities and the exact formulas.
 
 ## Stack (locked in for MVP)
 
@@ -78,10 +91,9 @@ accustomed to gamification (gaming) and to sharing personal data.
 
 ### Explicitly NOT Used at This Stage
 - Unreal Engine / any real-time 3D engine — the product is 2D data
-  visualization, not a game with an environment and camera; see the chat
-  discussion from 2026-09-01. Revisit only if the product evolves into a
-  full 3D world with an avatar — not before several successful
-  iterations.
+  visualization, not a game with an environment and camera. Revisit only
+  if the product evolves into a full 3D world with an avatar — not before
+  several successful iterations.
 
 ## Conventions
 - Code and commits — in English; product documents/specs — Russian is
@@ -89,3 +101,20 @@ accustomed to gamification (gaming) and to sharing personal data.
 - Entity naming in the DB — snake_case; in TypeScript types — PascalCase.
 - Every call to an MCP source is logged with a `fetched_at` field and a
   `freshness_window`, no exceptions.
+- Rendering logic (domain angle, ring radius) must never contain
+  profession-specific constants — see `openspec/changes/add-mvp-skill-assessment/specs/skill-map/spec.md`,
+  "Размещение колец и секторов не зависит от профессии".
+
+## Where to look next
+- `openspec/changes/add-mvp-skill-assessment/proposal.md` — scope of the
+  current MVP change
+- `openspec/changes/add-mvp-skill-assessment/design.md` — full entity
+  model (`User`, `Skill`, `Profession`, `SkillDomain`, `Cohort`, etc.)
+- `openspec/changes/add-mvp-skill-assessment/design-brief-ui-elements.md`
+  — component-level design brief (SkillNode, ConnectionLine,
+  CohortMarker, etc.) and the MSFS-style visual system (dark background,
+  circular icon nodes, filled+checkmark vs. grey+lock states)
+- `openspec/changes/add-mvp-skill-assessment/references.md` — design and
+  market references
+- `data/PAF_Skill_Map_database.xlsx` — seed data for the ETL step
+  (71 skills extracted from the PAF Skill Map)
