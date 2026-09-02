@@ -23,8 +23,16 @@
       path, отсутствующее обязательное поле, неверный `careerStage`,
       дефолт `consentedScopes`); нет ещё БД для тестов — автоматического
       теста на маршрут пока нет
-- [ ] 2.2 Интеграция с Claude API: извлечение `UserSkillAssessment` из
-      `resume_text`
+- [x] 2.2 Интеграция с Claude API: извлечение `UserSkillAssessment` из
+      `resume_text` — `POST /users/:userId/skill-assessments/infer`
+      (`backend/src/services/skill-extraction.ts`,
+      `backend/src/routes/skill-assessments.ts`), Claude Sonnet 5 +
+      structured output (`messages.parse` + Zod), indirect evidence
+      capped at rating 3 (spec requirement, enforced in code not just
+      prompt). Live-verified against the real Claude API with a sample
+      resume — correct direct/indirect split, correctly omitted a skill
+      the resume explicitly disclaimed. Doesn't overwrite an
+      already-confirmed `self_report` assessment on re-run.
 - [ ] 2.3 Эндпоинт подтверждения/отклонения `inferred_rating`
 - [ ] 2.4 Расчёт разрыва с когортой (`assessment-scoring` +
       `cohort-benchmarking` спеки)
