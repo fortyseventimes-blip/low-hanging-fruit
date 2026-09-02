@@ -33,7 +33,14 @@
       resume — correct direct/indirect split, correctly omitted a skill
       the resume explicitly disclaimed. Doesn't overwrite an
       already-confirmed `self_report` assessment on re-run.
-- [ ] 2.3 Эндпоинт подтверждения/отклонения `inferred_rating`
+- [x] 2.3 Эндпоинт подтверждения/отклонения `inferred_rating` —
+      `POST /users/:userId/skill-assessments/:skillId/confirm` (сдвигает
+      в `self_report`, `self_rating = inferredRating`) и `.../reject`
+      (удаляет запись — assessment-scoring и так исключает из расчёта
+      разрыва любой неподтверждённый `resume_nlp`, хранить отклонённую
+      запись незачем). Верифицировано вручную: confirm/reject happy
+      path, confirm несуществующего → 404, reject уже подтверждённого
+      (`self_report`) → 400, reject уже удалённого → 404
 - [ ] 2.4 Расчёт разрыва с когортой (`assessment-scoring` +
       `cohort-benchmarking` спеки)
 - [ ] 2.5 Генерация `RoadmapRecommendation` (1–3 навыка) через Claude API
