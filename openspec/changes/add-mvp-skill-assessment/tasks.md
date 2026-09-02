@@ -73,7 +73,19 @@
 Раздел 2 (Backend) завершён.
 
 ## 3. Frontend
-- [ ] 3.1 Онбординг-форма (≤ 7 минут, см. дизайн-бриф: Onboarding Stepper)
+- [x] 3.1 Онбординг-форма (≤ 7 минут, см. дизайн-бриф: Onboarding Stepper)
+      — `frontend/src/components/OnboardingFlow.tsx` +
+      `OnboardingStepper.tsx`, 4 линейных шага (about you / where are
+      you / career stage / resume+consent), без промежуточного
+      сохранения на сервере — один `POST /users` на финальном шаге.
+      Consent smapped на `consentedScopes: ["resume_analysis"]`
+      (email/LinkedIn OAuth ещё не реализованы, фиктивные scope'ы не
+      добавлял). Live-верифицировано в браузере (Playwright): Continue/
+      Done задизейблены до заполнения обязательных полей каждого шага,
+      Back сохраняет ранее введённые данные, форма доходит до экрана
+      успеха. По пути нашёл и исправил реальный баг — на бэкенде не
+      было CORS, браузерный preflight на `POST /users` падал в 404
+      (`@fastify/cors`, добавлено в `backend/src/index.ts`)
 - [ ] 3.2 Компонент SkillNode (см. дизайн-бриф)
 - [ ] 3.3 Компонент SkillMap (радиальная раскладка секторы × кольца)
 - [ ] 3.4 Компонент ConnectionLine с hover-подсветкой
