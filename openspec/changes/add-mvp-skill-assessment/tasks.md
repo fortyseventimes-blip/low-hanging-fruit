@@ -1,9 +1,9 @@
 ## 1. Данные и БД
-- [ ] 1.1 Postgres-схема по `design.md` (User, Skill, SkillConnection,
+- [x] 1.1 Postgres-схема по `design.md` (User, Skill, SkillConnection,
       RoleProfile, StructuralBarrier, UserSkillAssessment, Cohort,
       CohortSkillBenchmark, RoadmapRecommendation + зарезервированные
       таблицы MarketSignal/CheckIn/MonetizationEvent)
-- [ ] 1.2 ETL: загрузка `PAF_Skill_Map_database.xlsx` → таблица `Skill` +
+- [x] 1.2 ETL: загрузка `PAF_Skill_Map_database.xlsx` → таблица `Skill` +
       `SkillConnection` (71 запись, уже подготовлено)
 - [ ] 1.3 ETL: Stack Overflow Developer Survey 2025 results.csv →
       `Cohort` + `CohortSkillBenchmark`
