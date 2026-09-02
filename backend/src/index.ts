@@ -2,6 +2,7 @@ import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { cohortGapRoutes } from "./routes/cohort-gap.js";
+import { dashboardRoutes } from "./routes/dashboard.js";
 import { roadmapRoutes } from "./routes/roadmap.js";
 import { skillAssessmentRoutes } from "./routes/skill-assessments.js";
 import { userRoutes } from "./routes/users.js";
@@ -19,6 +20,7 @@ await app.register(userRoutes);
 await app.register(skillAssessmentRoutes);
 await app.register(cohortGapRoutes);
 await app.register(roadmapRoutes);
+await app.register(dashboardRoutes);
 
 const port = Number(process.env.PORT ?? 3000);
 

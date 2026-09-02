@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { OnboardingStepper } from "./OnboardingStepper";
-import { createUser, type User } from "../api/client";
+import { createUser, inferSkillAssessments, type User } from "../api/client";
 
 const CAREER_STAGES = [
   { value: "plateaued_senior", label: "Senior, feeling stuck on a plateau" },
@@ -71,6 +71,12 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         resumeText: form.resumeText.trim(),
         consentedScopes: form.consented ? ["resume_analysis"] : [],
       });
+      // Only if the user actually consented to resume analysis — and even
+      // then, best-effort: an unassessed dashboard is still a valid landing
+      // state, so an inference hiccup shouldn't trap the user on this screen.
+      if (form.consented) {
+        await inferSkillAssessments(user.id).catch(() => {});
+      }
       onComplete(user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong — please try again.");
