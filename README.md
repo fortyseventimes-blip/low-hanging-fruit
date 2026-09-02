@@ -27,13 +27,20 @@ Starts Postgres 17 on `localhost:5432` (user/password/db: see
 **2. Backend** (`backend/`)
 ```
 cd backend
-cp .env.example .env   # fill in ANTHROPIC_API_KEY (see note below)
+cp .env.example .env
 npm install
 npx prisma migrate deploy
-npm run etl:paf              # seeds Profession/SkillDomain/Skill/SkillConnection from data/PAF_Skill_Map_database.xlsx
-npm run seed:pilot-role      # seeds the pilot RoleProfile + StructuralBarrier (Product Analyst, Germany)
-npm run dev                  # http://localhost:3000
+npm run etl:paf
+npm run seed:pilot-role
+npm run dev
 ```
+Before running `npm run dev`, fill in `ANTHROPIC_API_KEY` in the `.env`
+you just copied (see note below). `npm run etl:paf` seeds
+`Profession`/`SkillDomain`/`Skill`/`SkillConnection` from
+`data/PAF_Skill_Map_database.xlsx`; `npm run seed:pilot-role` seeds the
+pilot `RoleProfile` + `StructuralBarrier` (Product Analyst, Germany).
+`npm run dev` starts the API at `http://localhost:3000`.
+
 The `so-survey-cohorts` ETL (`npm run etl:so-survey`) needs the ~140MB
 raw CSV first — see "Cold-Start Data" below — and seeds `Cohort` /
 `CohortSkillBenchmark`. Without it there's no cohort to compare against
@@ -50,11 +57,17 @@ gracefully, doesn't block onboarding).
 ```
 cd frontend
 npm install
-npm run dev   # http://localhost:5173
+npm run dev
 ```
-No `.env` needed for local dev — it defaults to `http://localhost:3000`
-for the API (override via `VITE_API_BASE_URL` if the backend runs
-elsewhere).
+This starts the dev server at `http://localhost:5173`. No `.env` needed
+for local dev — it defaults to `http://localhost:3000` for the API
+(override via `VITE_API_BASE_URL` if the backend runs elsewhere).
+
+> **Windows note:** copy these commands one line at a time, without any
+> trailing `# comment` — `#` only starts a comment in bash/zsh. In
+> Command Prompt (and some PowerShell setups) it's passed through as a
+> literal argument, which `vite`'s strict CLI parser will reject with
+> `CACError: Unused args`.
 
 Open **http://localhost:5173** — that's the actual app: onboarding →
 skill map dashboard.
